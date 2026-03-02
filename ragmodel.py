@@ -2,6 +2,7 @@ import faiss
 from groq import Groq
 import os
 import PyPDF2
+from sentence_transformers import SentenceTransformer
 import numpy as np
 import pickle
 
@@ -33,10 +34,54 @@ def pdf_to_vectors(pdf_path):
     chunks=[]
     chunk_metadata =[]
 
-    for i in range(o, len(text), 400):
+    for i in range(0, len(text), 400):
         chunk_text = text[i:i+500]
-        
+        chunks.append(chunk_text)
 
 
-#text = pdf_to_vectors("Bevolution Audit SOP.pdf")
+        estimated_page = min((i// (len(text)//total_pages)) + 1, total_pages)
+        chunk_metadata.append({
+            'start_pos': i,
+            'estimated_page': estimated_page
+        })       
+    print("created", len(chunks), "chunks")
+
+
+    print("Getting embeddings locally...")
+    model = SentenceTransformer("all-MiniLM-L6-v2")
+    embeddings = []
+    for i, chunk in enumerate(chunks):
+        print(f"Processing {i+1}/{len(chunks)}")
+        embedding = model.encode(chunk)
+        embeddings.append(embedding)
+    embeddings = np.array(embeddings)
+
+    print("Creating FAISS index...")
+    embeddings = np.array(embeddings).astype("float32")
+    dimension = embeddings.shape[1]   # safer than hardcoding 384
+    index = faiss.IndexFlatL2(dimension)
+    
+    index.add(embeddings)
+    
+    print("Total vectors in index:", index.ntotal)
+    
+    faiss.write_index(index, "vectors.index")
+
+    print("Saving to files.....")
+    faiss.write_index(index, "vector.index")
+    with open("chunks.pkl", "wb") as f:
+        pickle.dump({
+            'chunks': chunks,
+            'metadata': chunk_metadata,
+            'total_pages': total_pages
+        }, f)
+    print("vector database created successfully")
+
+
+if __name__ = "__main__":
+    pdf_file = "sample.pdf.pdf"
+    embeddings, chunks = pdf_to_vectors(pdf_file)
+
+    
+    #text = pdf_to_vectors("Bevolution Audit SOP.pdf")
 #print(text[:1000])
