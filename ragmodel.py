@@ -24,7 +24,17 @@ def pdf_to_vectors(pdf_path):
             })
         
         text = ''.join([p['text'] for p in page_texts])
-        print("total character" ,len(text))
+    
+    print("Total pages: ", total_pages)
+    print("total text length: ", len(text))
+    print("Average characters per page: ", len(text)//total_pages)
+
+
+    chunks=[]
+    chunk_metadata =[]
+
+    for i in range(o, len(text), 400):
+        chunk_text = text[i:i+500]
         
 
 
