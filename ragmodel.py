@@ -69,6 +69,7 @@ def pdf_to_vectors(pdf_path):
 
     print("Saving to files.....")
     faiss.write_index(index, "vector.index")
+    
     with open("chunks.pkl", "wb") as f:
         pickle.dump({
             'chunks': chunks,
@@ -76,11 +77,13 @@ def pdf_to_vectors(pdf_path):
             'total_pages': total_pages
         }, f)
     print("vector database created successfully")
+    return embeddings, chunks
 
 
-if __name__ = "__main__":
-    pdf_file = "sample.pdf.pdf"
+if __name__ =="__main__":
+    pdf_file = "KADIT'S Policy.pdf"
     embeddings, chunks = pdf_to_vectors(pdf_file)
+    
 
     
     #text = pdf_to_vectors("Bevolution Audit SOP.pdf")
